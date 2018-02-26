@@ -48,22 +48,13 @@ export function cleanDraggableActions() {
   return { type: 'KANBAN_ISSUE_ACTIONS_CLEAN' };
 }
 
-export function switchRank(flag) {
-  return { type: 'KANBAN_SWITCH_RANK', flag };
+export function selectFilter(key) {
+  return { type: 'KANBAN_SELECT_FILTER', key };
 }
 
-export function getRank(key, kid) {
+export function recordAccess(key, kid) {
   return asyncFuncCreator({
-    constant: 'KANBAN_ISSUE_RANK_GET',
-    kid,
-    promise: (client) => client.request({ url: '/project/' + key + '/kanban/' + kid + '/rank' })
-  });
-}
-
-export function setRank(key, kid, values) {
-  return asyncFuncCreator({
-    constant: 'KANBAN_ISSUE_RANK_SET',
-    kid,
-    promise: (client) => client.request({ url: '/project/' + key + '/kanban/' + kid + '/rank', method: 'post', data: values || {} })
+    constant: 'KANBAN_ACCESS_RECORD',
+    promise: (client) => client.request({ url: '/project/' + key + '/kanban/' + kid + '/access' })
   });
 }

@@ -5,16 +5,14 @@ import _ from 'lodash';
 
 import Column from './Column';
 
-const no_avatar = require('../../assets/images/no_avatar.png');
+const no_avatar = require('../../../assets/images/no_avatar.png');
 
 const cardSource = {
   beginDrag(props) {
     props.closeDetail();
-    props.getDraggableActions(props.issue.id);
     this.preIndex = props.index;
     return {
       id: props.issue.id,
-      entry_id: props.issue.entry_id || '',
       index: props.index
     };
   },
@@ -23,7 +21,6 @@ const cardSource = {
     if (this.preIndex != props.index) {
       props.issueRank(props.issue.id);
     }
-    props.cleanDraggableActions();
   }
 };
 
@@ -76,6 +73,9 @@ const cardTarget = {
 
 @DropTarget(
   props => {
+    if (!props.rankable) {
+      return [];
+    }
     return _.map(props.accepts, (v) => { 
       if (props.issue.parent && props.issue.parent.id) {
         return props.issue.parent.id + '-' + v;
@@ -108,15 +108,13 @@ export default class Card extends Component {
   static propTypes = {
     connectDragSource: PropTypes.func.isRequired,
     connectDropTarget: PropTypes.func.isRequired,
-    getDraggableActions: PropTypes.func.isRequired,
-    cleanDraggableActions: PropTypes.func.isRequired,
     issueRank: PropTypes.func.isRequired,
     setRank: PropTypes.func.isRequired,
-    rankLoading: PropTypes.bool.isRequired,
     closeDetail: PropTypes.func.isRequired,
     draggedIssue: PropTypes.object.isRequired,
     issueView: PropTypes.func.isRequired,
     issue: PropTypes.object.isRequired,
+    rankMap: PropTypes.array.isRequired,
     openedIssue: PropTypes.object.isRequired,
     isDragging: PropTypes.bool.isRequired,
     index: PropTypes.number.isRequired,
@@ -135,15 +133,13 @@ export default class Card extends Component {
       pkey, 
       draggedIssue, 
       issueView, 
+      rankMap,
       openedIssue, 
       isDragging, 
       connectDragSource, 
       connectDropTarget, 
-      getDraggableActions,
-      cleanDraggableActions,
       issueRank,
       setRank,
-      rankLoading,
       closeDetail,
       subtasks=[],
       accepts,
@@ -170,23 +166,19 @@ export default class Card extends Component {
               closeDetail={ closeDetail }
               draggedIssue={ draggedIssue }
               issueView={ issueView }
-              getDraggableActions={ getDraggableActions }
-              cleanDraggableActions={ cleanDraggableActions }
+              rankMap={ rankMap }
               issueRank={ issueRank }
               setRank={ setRank }
-              rankLoading={ rankLoading }
               moveCard={ moveCard }/> }
           <Column 
             isSubtaskCol={ true }
             colNo={ colNo } 
+            rankMap={ rankMap }
             openedIssue={ openedIssue } 
             draggedIssue={ draggedIssue }
             issueView={ issueView } 
-            getDraggableActions={ getDraggableActions } 
-            cleanDraggableActions={ cleanDraggableActions } 
             cards={ subtasks } 
             setRank={ setRank }
-            rankLoading={ rankLoading }
             pkey={ pkey }
             accepts={ accepts }
             closeDetail={ closeDetail }

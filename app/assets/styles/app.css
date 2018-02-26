@@ -34,7 +34,8 @@
 }
 
 .modal-content .ralign {
-  margin-right: 20px
+  margin-right: 20px;
+  color: red;
 }
 
 .sidebar-header {
@@ -564,7 +565,7 @@ table tr:hover .remove-icon{
 
 .toc-logo {
   position: absolute;
-  left: 52%;
+  left: 54%;
 }
 
 .info-col {
@@ -677,4 +678,118 @@ table tr:hover .remove-icon{
 
 .filter-dragcard:hover {
   background-color: #fff;
+}
+
+/* project */
+.cardContainer {
+  padding: 0 0 0 15px;
+  margin-top: 15px;
+}
+.card {
+  position: relative;
+  height: 200px;
+  border: 1px solid #eee;
+}
+.card:hover {
+  border: 1px solid #ccc;
+}
+.card .content {
+  position: relative;
+  height: 83%;
+  background-color: #fafafa;
+  border-bottom: 1px solid #eee;
+}
+.card .title {
+  position: absolute;
+  top: 50px;  
+  display: inline-block;
+  width: 100%;
+  color: #000;
+  box-sizing: border-box;
+  text-align: center;
+}
+.card .title .name {
+  font-size: 19px;
+  margin: 0;
+}
+.card .title .key {
+  font-size: 16px;
+  margin: 0;
+}
+
+.card .status {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 10;
+}
+.card .leader {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  color: #666;
+}
+.card .btns {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  display: none;
+}
+.card:hover .btns {
+  display: block;
+}
+
+.menu-active {
+  font-weight: 600;
+  cursor: default;
+}
+
+.color-bar {
+  border-top: 13px solid #3c78b5;
+  height: 0;
+  overflow: hidden;
+}
+
+.red-bar {
+  border-top: 13px solid #d73a49;
+  height: 0;
+  overflow: hidden;
+}
+
+.green-bar {
+  border-top: 13px solid #28a745;
+  height: 0;
+  overflow: hidden;
+}
+
+.exchange-icon {
+  color: #5f5f5f;
+  cursor: pointer;
+  float: right;
+  margin-right: 5px;
+}
+
+.exchange-icon:hover {
+  color: #000;
+  cursor: pointer;
+  float: right;
+  margin-right: 5px;
+}
+
+::-webkit-scrollbar {
+	-webkit-appearance: none
+}
+
+::-webkit-scrollbar:horizontal {
+	height: 11px
+}
+
+::-webkit-scrollbar:vertical {
+	width: 11px
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: rgba(0,0,0,.33);
+	border: 2px solid #fff;
+	border-radius: 8px
 }

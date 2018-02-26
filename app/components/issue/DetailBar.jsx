@@ -152,7 +152,12 @@ export default class DetailBar extends Component {
   }
 
   openPreview(index) {
-    this.setState({ previewShow: true, photoIndex: index });
+    const { options } = this.props;
+    if (options.permissions && options.permissions.indexOf('download_file') !== -1) {
+      this.setState({ previewShow: true, photoIndex: index });
+    } else {
+      notify.show('权限不足。', 'error', 2000);
+    }
   }
 
   async viewWorkflow(e) {
@@ -507,15 +512,15 @@ export default class DetailBar extends Component {
                       </DropdownButton>
                     </div> ) }
                   <div style={ { float: 'right' } }>
-                    <DropdownButton pullRight bsStyle='link' title='更多' onSelect={ this.operateSelect.bind(this) }>
+                    <DropdownButton pullRight title='更多' onSelect={ this.operateSelect.bind(this) }>
                       <MenuItem eventKey='refresh'>刷新</MenuItem>
                       { options.permissions && options.permissions.indexOf('assign_issue') !== -1 && <MenuItem eventKey='assign'>分配</MenuItem> }
                       <MenuItem divider/>
                       <MenuItem eventKey='watch'>{ data.watching ? '取消关注' : '关注' }</MenuItem>
                       <MenuItem eventKey='share'>分享链接</MenuItem>
-                      { !data.parent_id && subtaskTypeOptions.length > 0 && options.permissions && _.intersection(options.permissions, ['create_issue', 'edit_issue']).length > 0 && <MenuItem divider/> }
+                      { !data.parent_id && subtaskTypeOptions.length > 0 && options.permissions && ((options.permissions.indexOf('edit_issue') !== -1 && !data.hasSubtasks) || options.permissions.indexOf('create_issue') !== -1) && <MenuItem divider/> }
                       { !data.parent_id && subtaskTypeOptions.length > 0 && options.permissions && options.permissions.indexOf('create_issue') !== -1 && <MenuItem eventKey='createSubtask'>创建子任务</MenuItem> }
-                      { !data.parent_id && subtaskTypeOptions.length > 0 && options.permissions && options.permissions.indexOf('edit_issue') !== -1 && <MenuItem eventKey='convert2Subtask'>转换为子任务</MenuItem> }
+                      { !data.hasSubtasks && !data.parent_id && subtaskTypeOptions.length > 0 && options.permissions && options.permissions.indexOf('edit_issue') !== -1 && <MenuItem eventKey='convert2Subtask'>转换为子任务</MenuItem> }
                       { data.parent_id && options.permissions && options.permissions.indexOf('edit_issue') !== -1 && <MenuItem divider/> }
                       { data.parent_id && options.permissions && options.permissions.indexOf('edit_issue') !== -1 && <MenuItem eventKey='convert2Standard'>转换为标准问题</MenuItem> }
                       { options.permissions && (_.intersection(options.permissions, ['link_issue', 'create_issue']).length > 0 || (options.permissions.indexOf('move_issue') !== -1 && data.parent_id)) && <MenuItem divider/> }
@@ -746,8 +751,18 @@ export default class DetailBar extends Component {
                           <tbody>
                             { _.map(noImgFiles, (f, i) => 
                               <tr key={ i }>
-                                <td><i className={ this.getFileIconCss(f.name) }></i> <a href={ '/api/project/' + project.key + '/file/' + f.id } download={ f.name }>{ f.name }</a></td>
-                                { options.permissions && options.permissions.indexOf('remove_file') !== -1 && <td width='2%'><span className='remove-icon' onClick={ this.delFileNotify.bind(this, field.key, f.id, f.name) }><i className='fa fa-trash'></i></span></td> }
+                                <td>
+                                  <span style={ { marginRight: '5px' } }><i className={ this.getFileIconCss(f.name) }></i></span> 
+                                  { options.permissions && options.permissions.indexOf('download_file') !== -1 ? 
+                                    <a href={ '/api/project/' + project.key + '/file/' + f.id } download={ f.name }>{ f.name }</a> :
+                                    <span>{ f.name }</span> }
+                                </td>
+                                { options.permissions && options.permissions.indexOf('remove_file') !== -1 && 
+                                  <td width='2%'>
+                                    <span className='remove-icon' onClick={ this.delFileNotify.bind(this, field.key, f.id, f.name) }>
+                                      <i className='fa fa-trash'></i>
+                                    </span>
+                                  </td> }
                               </tr> ) }
                           </tbody>
                         </Table> }
@@ -759,7 +774,7 @@ export default class DetailBar extends Component {
                              <Col sm={ 6 } key={ i }>
                                <div className='attachment-content'>
                                  <div className='attachment-thumb' onClick={ this.openPreview.bind(this, i) }>
-                                   <img src={  '/api/project/' + project.key + '/file/' + f.id + '?flag=s' }/>
+                                   <img src={  '/api/project/' + project.key + '/file/' + f.id + '/thumbnail' }/>
                                  </div>
                                  <div className='attachment-title-container'>
                                     <div className='attachment-title' title={ f.name }>{ f.name }</div>

@@ -4,20 +4,17 @@ import _ from 'lodash';
 const $ = require('$');
 const moment = require('moment');
 
-const loadingImg = require('../../assets/images/loading.gif');
-const DetailBar = require('../issue/DetailBar');
-const CreateModal = require('../issue/CreateModal');
+const loadingImg = require('../../../assets/images/loading.gif');
+const DetailBar = require('../../issue/DetailBar');
+const CreateModal = require('../../issue/CreateModal');
 const Column = require('./Column');
 const OverlayColumn = require('./OverlayColumn');
-const SelectVersionModal = require('./SelectVersionModal');
 
 export default class List extends Component {
   constructor(props) {
     super(props);
     this.state = { 
       barShow: false, 
-      selectVersionShow: false, 
-      workflowScreenShow: false, 
       drop_issue_id: '', 
       action_id: '' };
   }
@@ -25,10 +22,8 @@ export default class List extends Component {
   static propTypes = {
     i18n: PropTypes.object.isRequired,
     curKanban: PropTypes.object.isRequired,
+    rankLoading: PropTypes.bool.isRequired,
     draggedIssue: PropTypes.string.isRequired,
-    draggableActions: PropTypes.array.isRequired,
-    getDraggableActions: PropTypes.func.isRequired,
-    cleanDraggableActions: PropTypes.func.isRequired,
     collection: PropTypes.array.isRequired,
     indexLoading: PropTypes.bool.isRequired,
     index: PropTypes.func.isRequired,
@@ -84,23 +79,10 @@ export default class List extends Component {
     linkLoading: PropTypes.bool.isRequired,
     doAction: PropTypes.func.isRequired,
     watch: PropTypes.func.isRequired,
-    selectedFilter: PropTypes.string.isRequired,
+    rankable: PropTypes.bool.isRequired,
     setRank: PropTypes.func.isRequired,
-    rankLoading: PropTypes.bool.isRequired,
     release: PropTypes.func.isRequired,
     user: PropTypes.object.isRequired
-  }
-
-  selectVersionModalClose() {
-    this.setState({ selectVersionShow: false });
-  }
-
-  workflowScreenModalClose() {
-    this.setState({ workflowScreenShow: false });
-  }
-
-  workflowScreenShow(drop_issue_id, action_id) {
-    this.setState({ workflowScreenShow: true, drop_issue_id, action_id });
   }
 
   closeDetail() {
@@ -151,10 +133,8 @@ export default class List extends Component {
     const { 
       i18n,
       curKanban,
+      rankLoading,
       draggedIssue,
-      draggableActions,
-      getDraggableActions,
-      cleanDraggableActions,
       collection, 
       indexLoading, 
       wfCollection,
@@ -209,9 +189,8 @@ export default class List extends Component {
       resetState,
       del,
       doAction,
-      selectedFilter,
+      rankable,
       setRank,
-      rankLoading,
       release,
       user
     } = this.props;
@@ -240,26 +219,20 @@ export default class List extends Component {
         <div className='board-overlay-waiting' style={ { display: !this.state.barShow && itemLoading ? 'block' : 'none' } }>
           <img src={ loadingImg } className='loading board-loading'/>
         </div>
-        { !_.isEmpty(curKanban) && indexLoading && 
+        { !_.isEmpty(curKanban) && (rankLoading || indexLoading) && 
         <div style={ { marginTop: '20px', width: '100%', textAlign: 'center' } }>
           <img src={ loadingImg } className='loading'/> 
         </div> }
 
-        { !_.isEmpty(curKanban) && !indexLoading && 
+        { !_.isEmpty(curKanban) && !indexLoading && !rankLoading && 
         <div className='board-pool'>
           <div className='board-column-header-group'>
             <ul className='board-column-header'>
             { _.map(curKanban.columns, (v, i) => ( 
-              <li 
-                key={ i } 
-                className='board-column' 
-                style={ { background: selectedFilter === 'all' ? (v.max && columnIssues[i].length > v.max ? '#d04437' : (v.min && columnIssues[i].length < v.min ? '#f6c342' : '')) : '' } }>
+              <li key={ i } className='board-column'>
                 <span style={ { fontWeight: 600 } }>{ v.name }</span>（{ columnIssues[i].length }）
-                { v.max && <span className='config-wip'>{ 'Max-' + v.max }</span> }
-                { v.min && <span className='config-wip'>{ 'Min-' + v.min }</span> }
-                { i == curKanban.columns.length - 1 && columnIssues[i].length > 0 && selectedFilter == 'all' && options.permissions && options.permissions.indexOf('manage_project') !== -1 &&
-                <a href='#' style={ { float: 'right' } } 
-                  onClick={ (e) => { e.preventDefault(); this.setState({ selectVersionShow: true }); } }>
+                { i == curKanban.columns.length - 1 && columnIssues[i].length > 0 && 
+                <a href='#' style={ { float: 'right' } }> 
                   发布...
                 </a> }
               </li> ) ) }
@@ -271,14 +244,12 @@ export default class List extends Component {
               <Column 
                 key={ i }
                 colNo={ i }
+                rankMap={ curKanban.ranks || [] }
                 subtaskShow={ curKanban.query && curKanban.query.subtask && true }
                 openedIssue={ this.state.barShow ? itemData : {} }
                 draggedIssue={ _.find(collection, { id: draggedIssue }) || {} }
                 issueView={ this.issueView.bind(this) }
-                getDraggableActions={ getDraggableActions }
-                cleanDraggableActions={ cleanDraggableActions }
                 setRank={ setRank }
-                rankLoading={ rankLoading }
                 cards={ columnIssues[i] }
                 pkey={ project.key }
                 accepts={ v.states }
@@ -294,9 +265,6 @@ export default class List extends Component {
                   index={ i }
                   isEmpty={ !(draggedIssue && _.findIndex(columnIssues[i], { id: draggedIssue }) === -1) }
                   draggedIssue={ _.find(collection, { id: draggedIssue }) || {} }
-                  draggableActions={ draggableActions }
-                  doAction={ doAction }
-                  workflowScreenShow={ this.workflowScreenShow.bind(this) }
                   options={ options }
                   acceptStates={ v.states || [] }/> ) } ) }
             </div>
@@ -359,25 +327,6 @@ export default class List extends Component {
             resetState={ resetState }
             doAction={ doAction }
             user={ user }/> }
-        { this.state.workflowScreenShow &&
-          <CreateModal show
-            close={ this.workflowScreenModalClose.bind(this) }
-            options={ options }
-            edit={ edit }
-            loading={ loading }
-            project={ project }
-            data={ _.extend(_.find(collection, { id: this.state.drop_issue_id }), { wfactions: draggableActions }) }
-            action_id={ this.state.action_id  }
-            doAction={ doAction }
-            isFromWorkflow={ true }
-            i18n={ i18n }/> }
-        { this.state.selectVersionShow &&
-          <SelectVersionModal show
-            options={ options }
-            close={ this.selectVersionModalClose.bind(this) }
-            release={ release } 
-            releasedIssues={ _.last(columnIssues) || [] } 
-            i18n={ i18n }/> }
       </div>
     );
   }

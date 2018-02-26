@@ -1,6 +1,7 @@
 import React, { PropTypes, Component } from 'react';
 import update from 'react/lib/update';
 import _ from 'lodash';
+
 import Bucket from './Bucket';
 
 const $ = require('$');
@@ -13,16 +14,13 @@ export default class OverlayColumn extends Component {
   static propTypes = {
     index: PropTypes.number.isRequired,
     isEmpty: PropTypes.bool.isRequired,
-    draggableActions: PropTypes.array.isRequired,
-    doAction: PropTypes.func.isRequired,
-    workflowScreenShow: PropTypes.func.isRequired,
     draggedIssue: PropTypes.object,
     options: PropTypes.object.isRequired,
     acceptStates: PropTypes.array.isRequired
   }
 
   render() {
-    const { isEmpty, acceptStates, draggedIssue, draggableActions, options, doAction, workflowScreenShow } = this.props;
+    const { isEmpty, acceptStates, draggedIssue, options } = this.props;
 
     // get action num of reaching the state
     const actionNum = _.countBy(draggableActions, _.iteratee('state'));
@@ -55,8 +53,6 @@ export default class OverlayColumn extends Component {
                   key={ i }
                   draggedIssue={ draggedIssue }
                   accepts={ _.map(options.states, (v) => v.id) }
-                  doAction={ doAction }
-                  workflowScreenShow={ workflowScreenShow }
                   dragAction={ v }
                   height={ cellHeight }/> ) }
           </div>

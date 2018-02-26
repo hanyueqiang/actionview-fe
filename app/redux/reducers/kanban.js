@@ -1,9 +1,18 @@
 import * as t from '../constants/ActionTypes';
 import _ from 'lodash';
 
-const initialState = { ecode: 0, rankable: true, list: [], loading: false, rankLoading: false, configLoading: false, wfactions: [], wfLoading: false, draggedIssue: '' };
+const initialState = { 
+  ecode: 0, 
+  selectedFilter: 'all', 
+  list: [], 
+  loading: false, 
+  rankLoading: false, 
+  configLoading: false, 
+  wfactions: [], 
+  wfLoading: false, 
+  draggedIssue: '' };
 
-export default function activity(state = initialState, action) {
+export default function kanban(state = initialState, action) {
   switch (action.type) {
     case t.KANBAN_LIST_GET:
       return { ...state, loading: true, rankable: true, list: [] };
@@ -69,24 +78,15 @@ export default function activity(state = initialState, action) {
     case t.KANBAN_ISSUE_ACTIONS_CLEAN:
       return { ...state, draggedIssue: '', wfactions: [] };
 
-    case t.KANBAN_SWITCH_RANK:
-      return { ...state, rankable: action.flag };
+    case t.KANBAN_SELECT_FILTER:
+      return { ...state, selectedFilter: action.key };
 
-    case t.KANBAN_ISSUE_RANK_GET:
-    //case t.KANBAN_ISSUE_RANK_SET:
+    case t.KANBAN_ISSUE_RANK_SET:
       return { ...state, rankLoading: true };
 
-    case t.KANBAN_ISSUE_RANK_GET_SUCCESS:
     case t.KANBAN_ISSUE_RANK_SET_SUCCESS:
-      if (action.result.ecode === 0) {
-        const curKanbanInd = _.findIndex(state.list, { id: action.kid });
-        if (curKanbanInd !== -1) {
-          state.list[curKanbanInd].ranks = action.result.data;
-        }
-      }
       return { ...state, rankLoading: false, ecode: action.result.ecode };
 
-    case t.KANBAN_ISSUE_RANK_GET_FAIL:
     case t.KANBAN_ISSUE_RANK_SET_FAIL:
       return { ...state, rankLoading: false, error: action.error };
 

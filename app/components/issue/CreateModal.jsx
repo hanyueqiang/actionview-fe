@@ -60,8 +60,8 @@ class CreateModal extends Component {
             values[v.key] = _.map(data[v.key], (v) => { return v.id || v; }); // files
             oldValues[v.key] = _.map(data[v.key], (v) => { return v.id || v; }); // files
           } else if (v.type === 'DatePicker' || v.type === 'DateTimePicker') {
-            values[v.key] = moment.unix(data[v.key]);
-            oldValues[v.key] = moment.unix(data[v.key]);
+            values[v.key] = data[v.key] && moment.unix(data[v.key]);
+            oldValues[v.key] = data[v.key] && moment.unix(data[v.key]);
           } else {
             values[v.key] = data[v.key];
             oldValues[v.key] = data[v.key];
@@ -167,14 +167,18 @@ class CreateModal extends Component {
     _.mapValues(submitData, (val, key) => {
       const index = _.findIndex(schema, { key });
       const field = index === -1 ? {} : schema[index];
-      if (field.type === 'DatePicker') {
-        submitData[key] = parseInt(moment(val).startOf('day').format('X')); 
-      } else if (field.type === 'DateTimePicker') {
-        submitData[key] = parseInt(moment(val).format('X')); 
-      } else if (field.type === 'Number') {
-        submitData[key] = parseInt(val);
+      if (val) {
+        if (field.type === 'DatePicker') {
+          submitData[key] = parseInt(moment(val).startOf('day').format('X')); 
+        } else if (field.type === 'DateTimePicker') {
+          submitData[key] = parseInt(moment(val).format('X')); 
+        } else if (field.type === 'Number') {
+          submitData[key] = parseInt(val);
+        } else {
+          submitData[key] = val;
+        }
       } else {
-        submitData[key] = val || ''; 
+        submitData[key] = ''; 
       }
     });
 

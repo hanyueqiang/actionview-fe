@@ -114,7 +114,7 @@ class Login extends Component {
     const { values, actions, projectActions } = this.props;
     await actions.create(values);
     const { session } = this.props;
-    if (session.ecode === 0) {
+    if (session.ecode === 0 && session.user && session.user.id) {
       if (query.request_url) {
         let requests = decodeURI(query.request_url).split('?');
         let pathname = requests.shift();
@@ -141,7 +141,7 @@ class Login extends Component {
   }
 
   render() {
-    const { fields: { email, password }, handleSubmit, invalid, submitting } = this.props;
+    const { fields: { email, password }, handleSubmit, invalid, submitting, session } = this.props;
 
     return (
       <div className='login-panel'>
@@ -150,17 +150,23 @@ class Login extends Component {
             <img src={ brand } width={ 200 }/>
           </div>
           <form onSubmit={ handleSubmit(this.handleSubmit) }>
-            <FormGroup controlId='formControlsText' validationState={ email.touched && email.error ? 'error' : '' }>
+            <FormGroup controlId='formControlsName' validationState={ email.touched && email.error ? 'error' : '' }>
               <FormControl disabled={ submitting } type='text' { ...email } placeholder='用户名/邮箱'/>
               { email.touched && email.error && <HelpBlock style={ { marginLeft: '5px' } }>{ email.error }</HelpBlock> }
             </FormGroup>
-            <FormGroup controlId='formControlsText' validationState={ password.touched && password.error ? 'error' : '' }>
+            <FormGroup controlId='formControlsPwd' validationState={ password.touched && password.error ? 'error' : '' }>
               <FormControl disabled={ submitting } type='password' { ...password } placeholder='密码'/>
               { password.touched && password.error && <HelpBlock style={ { marginLeft: '5px' } }>{ password.error }</HelpBlock> }
             </FormGroup>
             <Button bsStyle='success' disabled={ submitting } type='submit'>{ submitting ? '登 录 中 ...' : '登 录' }</Button>
             <div style={ { textAlign: 'center', height: '40px' } }>
-              { this.state.alertShow && !submitting && <div style={ { marginTop: '10px', color: '#a94442' } }>登录失败，用户名或密码错误。</div> }
+              { this.state.alertShow && !submitting && 
+                <div style={ { marginTop: '10px', color: '#a94442' } }>
+                  { session.ecode === -10000 && '登录失败，用户名或密码错误。' }   
+                  { session.ecode === -10004 && session.emsg }   
+                  { session.ecode === -10005 && '用户未激活。' }   
+                  { session.ecode === -99999 && '系统错误。' }
+                </div> }
             </div>
             <div className='login-footer'>
               <Link to='/forgot'>忘记密码</Link>

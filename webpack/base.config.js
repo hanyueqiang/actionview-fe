@@ -7,9 +7,6 @@ const JS_REGEX = /\.js$|\.jsx$|\.es6$|\.babel$/;
 export default {
   baseConfig: {
     devtool: 'source-map',
-    entry: {
-      app: './app/index.js'
-    },
     output: {
       path: path.resolve(__dirname, '../dist'),
       filename: '[name]-[hash].js',

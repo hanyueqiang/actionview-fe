@@ -65,7 +65,7 @@ export default class Container extends Component {
   }
 
   async index(query) {
-    await this.props.issueActions.index(this.pid, qs.stringify(_.extend(query || {}, { from: 'kanban', limit: 10000 })));
+    await this.props.issueActions.index(this.pid, qs.stringify(_.extend(query || {}, { from: 'kanban', from_kanban_id: this.kanban_id, filter: this.props.kanban.selectedFilter, limit: 10000 })));
     return this.props.issue.ecode;
   }
 
@@ -231,8 +231,8 @@ export default class Container extends Component {
   }
 
   async setRank(values) {
-    await this.props.actions.setRank(this.pid, this.kanban_id, values);
-    return this.props.kanban.ecode;
+    await this.props.issueActions.setRank(this.pid, this.kanban_id, values);
+    return this.props.issue.ecode;
   }
 
   async release(ids) {
@@ -265,7 +265,7 @@ export default class Container extends Component {
     } else {
       if (id != this.kanban_id) {
         this.kanban_id = id;
-        this.props.actions.getRank(this.pid, id);
+        this.props.actions.recordAccess(this.pid, id);
       }
     }
   }
@@ -289,7 +289,7 @@ export default class Container extends Component {
           kanbans={ this.props.kanban.list }
           loading={ this.props.kanban.loading || this.props.issue.optionsLoading }
           goto={ this.goto }
-          switchRank={ this.props.actions.switchRank }
+          selectFilter={ this.props.actions.selectFilter }
           index={ this.index.bind(this) } 
           project={ this.props.project.item }
           createKanban={ this.createKanban.bind(this) }
@@ -299,8 +299,7 @@ export default class Container extends Component {
         { this.state.model == 'issue' &&
         <List 
           curKanban={ curKanban }
-          rankLoading={ this.props.kanban.rankLoading }
-          rankable={ this.props.kanban.rankable }
+          selectedFilter={ this.props.kanban.selectedFilter }
           draggedIssue={ this.props.kanban.draggedIssue }
           draggableActions={ this.props.kanban.wfactions }
           getDraggableActions={ this.getDraggableActions.bind(this) }

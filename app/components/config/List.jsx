@@ -30,7 +30,7 @@ export default class List extends Component {
 
     return ( loading ?
       <div style={ { marginTop: '15px' } }>
-        <div className='detail-view-blanket' style={ { display: loading ? 'block' : 'none', marginLeft: '45%' } }>
+        <div className='detail-view-blanket' style={ { display: loading ? 'block' : 'none' } }>
           <img src={ img } className='loading'/>
         </div>
       </div>
@@ -108,7 +108,7 @@ export default class List extends Component {
           <Table responsive hover>
             <thead>
               <tr>
-                <th>名称</th>
+                <th style={ { width: '300px' } }>名称</th>
                 <th>权限</th>
               </tr>
             </thead>

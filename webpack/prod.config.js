@@ -6,6 +6,12 @@ import { baseConfig } from './base.config';
 
 export default {
   ...baseConfig,
+  entry: {
+    app: [
+      './app/index.js'
+    ],
+    common: ['react', 'react-dom', 'redux', 'react-redux', 'react-router', 'react-router-redux', 'react-bootstrap', 'react-bootstrap-table']
+  },
   module: {
     ...baseConfig.module,
     loaders: [
@@ -33,6 +39,10 @@ export default {
         NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production')
       }
     }),
+
+    new webpack.optimize.CommonsChunkPlugin({
+      names: ['common'],
+      filename: 'common.js' }),
 
     // optimizations
     new webpack.optimize.DedupePlugin(),

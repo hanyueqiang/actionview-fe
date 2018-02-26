@@ -1,7 +1,6 @@
 import React, { PropTypes, Component } from 'react';
 import update from 'react/lib/update';
 import _ from 'lodash';
-import { notify } from 'react-notify-toast';
 
 import Card from './Card';
 
@@ -20,6 +19,7 @@ export default class Column extends Component {
     isSubtaskCol: PropTypes.bool,
     subtaskShow: PropTypes.bool,
     colNo: PropTypes.number.isRequired,
+    rankMap: PropTypes.array.isRequired,
     openedIssue: PropTypes.object.isRequired,
     options: PropTypes.object.isRequired,
     pkey: PropTypes.string.isRequired,
@@ -27,15 +27,13 @@ export default class Column extends Component {
     cards: PropTypes.array.isRequired,
     draggedIssue: PropTypes.object.isRequired,
     issueView: PropTypes.func.isRequired,
-    getDraggableActions: PropTypes.func.isRequired,
-    cleanDraggableActions: PropTypes.func.isRequired,
     closeDetail: PropTypes.func.isRequired,
-    setRank: PropTypes.func.isRequired,
-    rankLoading: PropTypes.bool.isRequired
+    rankable: PropTypes.bool.isRequired,
+    setRank: PropTypes.func.isRequired
   }
 
   arrangeCard(props) {
-    const { isSubtaskCol, subtaskShow } = props;
+    const { colNo, isSubtaskCol, subtaskShow, rankMap } = props;
     const { cards } = this.state;
     let mainCards = [], classifiedSubtasks = {};
 
@@ -44,24 +42,37 @@ export default class Column extends Component {
     } else {
       if (subtaskShow) {
         _.map(cards, (v, i) => {
-          if (v.parent && v.parent.no) {
-            if (_.findIndex(cards, { no: v.parent.no }) === -1) {
+          if (v.parent && v.parent.id) {
+            if (_.findIndex(cards, { id: v.parent.id }) === -1) {
               mainCards.push(_.extend(v.parent, { mock: true }));
             }
-            if (!classifiedSubtasks[v.parent.no]) {
-              classifiedSubtasks[v.parent.no] = [];
+            if (!classifiedSubtasks[v.parent.id]) {
+              classifiedSubtasks[v.parent.id] = [];
             }
-            classifiedSubtasks[v.parent.no].push(v);
+            classifiedSubtasks[v.parent.id].push(v);
           } else {
             mainCards.push(v);
           }
         });
       } else {
-        mainCards = _.reject(cards, (v) => { return v.parent && v.parent.no && true });
+        mainCards = _.reject(cards, (v) => { return v.parent && v.parent.id && true });
       }
     }
 
-    this.state.mainCards = mainCards;
+    let curRankCol = {};
+    const sortedCards = []; 
+    if (mainCards.length > 0) {
+      const parent = _.head(mainCards).parent && _.head(mainCards).parent.id || '';
+      curRankCol = _.find(rankMap, { col_no: colNo, parent }) || {}; 
+      _.forEach(curRankCol.rank || [], (v) => {
+        const ind = _.findIndex(mainCards, { no: v });
+        if (ind !== -1) {
+          sortedCards.push(mainCards[ind]);
+        }
+      });
+    }
+
+    this.state.mainCards = _.union(sortedCards, _.filter(mainCards, (v) => { return _.findIndex(sortedCards, { no: v.no }) === -1 }));
     this.state.classifiedSubtasks = classifiedSubtasks;
   }
 
@@ -79,19 +90,15 @@ export default class Column extends Component {
     }));
   }
 
-  async issueRank(id) {
-    const { setRank } = this.props;
+  issueRank(id) {
+    const { colNo, setRank } = this.props;
     const { mainCards } = this.state;
 
-    const draggedIndex = _.findIndex(mainCards, { id });
-    const up = draggedIndex > 0 ? mainCards[draggedIndex - 1].no : -1;
-    const down = draggedIndex < mainCards.length -1 ? mainCards[draggedIndex + 1].no : -1;
-    const draggedIssue = mainCards[draggedIndex];
-
-    const ecode = await setRank({ current: draggedIssue.no, up, down });
-    if (ecode !== 0) {
-      notify.show('问题排序调整失败。', 'error', 2000);
-    }
+    const draggedIssue = _.find(mainCards, { id });
+    setRank({ 
+      col_no: colNo, 
+      parent: draggedIssue.parent && draggedIssue.parent.id || '', 
+      rank: _.map(mainCards, (v) => v.no) });
   }
 
   issueView(id) {
@@ -100,7 +107,8 @@ export default class Column extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.rankLoading && _.isEmpty(nextProps.draggedIssue)) {
+    //if (this.state.cards.length !== nextProps.cards.length) {
+    if (_.isEmpty(this.props.draggedIssue) && _.isEmpty(nextProps.draggedIssue)) {
       this.state.cards = nextProps.cards;
       this.arrangeCard(nextProps);
     }
@@ -111,11 +119,9 @@ export default class Column extends Component {
       colNo,
       isSubtaskCol=false,
       subtaskShow=false,
-      getDraggableActions, 
-      cleanDraggableActions, 
       setRank,
-      rankLoading,
       closeDetail, 
+      rankMap,
       draggedIssue,
       openedIssue, 
       options, 
@@ -134,20 +140,18 @@ export default class Column extends Component {
         <Card
           key={ v.id }
           colNo={ colNo }
+          rankMap={ rankMap }
           openedIssue={ openedIssue }
           index={ i }
           issue={ v }
           pkey={ pkey }
-          subtasks={ classifiedSubtasks[v.no] || [] }
+          subtasks={ classifiedSubtasks[v.id] || [] }
           accepts={ accepts }
           options={ options }
           closeDetail={ closeDetail }
           draggedIssue={ draggedIssue }
           issueView={ this.issueView.bind(this) }
-          getDraggableActions={ getDraggableActions }
-          cleanDraggableActions={ cleanDraggableActions }
           setRank={ setRank } 
-          rankLoading={ rankLoading }
           issueRank={ this.issueRank.bind(this) } 
           moveCard={ this.moveCard.bind(this) }/>
         ) }

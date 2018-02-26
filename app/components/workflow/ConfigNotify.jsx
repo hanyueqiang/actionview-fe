@@ -2,7 +2,7 @@ import React, { PropTypes, Component } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { notify } from 'react-notify-toast';
 
-export default class DelNotify extends Component {
+export default class ConfigNotify extends Component {
   constructor(props) {
     super(props);
     this.confirm = this.confirm.bind(this);
@@ -11,28 +11,22 @@ export default class DelNotify extends Component {
 
   static propTypes = {
     close: PropTypes.func.isRequired,
-    reset: PropTypes.func,
-    del: PropTypes.func,
-    data: PropTypes.object.isRequired
+    save: PropTypes.func,
+    cancel: PropTypes.func
   }
 
   async confirm() {
-    const { close, del=null, reset=null, data } = this.props;
-    let ecode = 0;
+    const { close, save=null, cancel=null } = this.props;
     close();
-    if (reset) {
-      ecode = await reset(data.id);
-      if (ecode === 0) {
-        notify.show('重置完成。', 'success', 2000);    
-      } else {
-        notify.show('重置失败。', 'error', 2000);    
-      }
+
+    if (cancel) {
+      cancel();
     } else {
-      ecode = await del(data.id);
+      const ecode = await save();
       if (ecode === 0) {
-        notify.show('删除完成。', 'success', 2000);    
+        notify.show('已保存。', 'success', 2000);
       } else {
-        notify.show('删除失败。', 'error', 2000);    
+        notify.show('保存失败。', 'error', 2000);
       }
     }
   }
@@ -43,15 +37,18 @@ export default class DelNotify extends Component {
   }
 
   render() {
-    const { reset=null, del=null, data } = this.props;
+    const { cancel } = this.props;
 
     return (
       <Modal { ...this.props } onHide={ this.cancel } backdrop='static' aria-labelledby='contained-modal-title-sm'>
         <Modal.Header closeButton style={ { background: '#f0f0f0', height: '50px' } }>
-          <Modal.Title id='contained-modal-title-la'>{ reset ? '重置' : '删除' }角色 - { data.name }</Modal.Title>
+          <Modal.Title id='contained-modal-title-la'>{ cancel ? '配置取消' : '配置保存' }</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          { reset ? '确认要重置此角色的权限？' : '确认要删除此角色？' }
+          <br/>
+          { cancel ? '确认要放弃修改吗？' : '配置可能存在无法到达的结点，确认要继续保存吗？' }
+          <br/>
+          <br/>
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={ this.confirm }>确定</Button>
